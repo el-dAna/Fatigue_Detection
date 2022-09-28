@@ -1,0 +1,31 @@
+"""
+This was in RNN_train.py
+THIS BLOCK IS FOR VERIFYING THE ACCURATE REPRESENTATION OF DATA INTO THE MODEL
+Class = 0
+attribute_number = 6
+which_subject = 0 # Remember for the frist 20 subjects/keys of the DATA_DICT, they are all relaxed, so which_subject 0-19 should correspond with Class 0, denoting relaxed
+extracted_var = G.DATA_DICT[0][attribute_number]
+
+var_path = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/vars.py'
+
+if attribute_number < 2:
+  subject_file_path = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/HealthySubjectsBiosignalsDataSet/Subject' + str(which_subject+1) + '/Subject' + str(which_subject+1) + 'SpO2HR.csv'
+else:
+  subject_file_path = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/HealthySubjectsBiosignalsDataSet/Subject' + str(which_subject+1) + '/Subject' + str(which_subject+1) + 'AccTempEDA.csv'
+
+labels_dict = {i:j for i,j in enumerate(G.common_parameters)}
+
+verify(Class, attribute_number, var_path, extracted_var, subject_file_path, G.NUMBERS_TO_LABELS_DICT, G.phy_emo_cog_indices)
+
+
+
+#plot_learnRate_epoch(G.EPOCHS, history)
+#plot_loss_accuracy(history)
+
+# now = datetime.now()
+# models_base_dir = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/model'
+# current_name = save = '-'.join(('physio-'+str(datetime.now().strftime("%c%z"))).split(' '))
+# path = os.path.join(models_base_dir, current_name)
+# model.save(path)
+
+"""

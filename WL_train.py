@@ -2,90 +2,23 @@ from dataclasses import dataclass
 import os, sys, pickle
 import tensorflow as tf
 from preprocessingfunctions import get_variables
-from physiofunctions import train_stack, predict_stack, adjust_sensitivity, window_sampling, PhysioDatagenerator, stop_training, schedule_learningRate, plot_learnRate_epoch, plot_loss_accuracy
-from verifyData import verify
-from mymodel import model
+from common_functions import train_stack, predict_stack, adjust_sensitivity, window_sampling, PhysioDatagenerator, stop_training, schedule_learningRate, plot_learnRate_epoch, plot_loss_accuracy
 from datetime import datetime
 from WL_functions import  get_coefficients, WaveletDatagenerator, plot_coefficients, WL_Model_Labels, manual_predict, plot_loss_accuracy#, train_stack, predict_stack, plot_data_from_DATADICT
 from WL_Model import wl_model
 from sklearn.metrics import confusion_matrix, classification_report
 
 
-#tf.keras.backend.clear_session() # clears internal variables so we start all initiations and assignments afresh
+tf.keras.backend.clear_session() # clears internal variables so we start all initiations and assignments afresh
+
 
 @dataclass
 class G:
   PERCENT_OF_TRAIN = 0.8
 
-  """1
-  BASE_DIR = '/content/gdrive/My Drive/PhysioProject1/python-classifier-2020/HealthySubjectsBiosignalsDataSet/'
-  PERCENT_OF_TRAIN = 1 # 1 used because all data needs to be processed and stored in variables
-  TRAIN_PERCENT = int(PERCENT_OF_TRAIN*len(os.listdir(BASE_DIR)))
-  TOTAL_SUBJECT_NUM = len(os.listdir(BASE_DIR)[0:TRAIN_PERCENT])
-
-  SUBJECTS = []
-  for i in range(TOTAL_SUBJECT_NUM):
-    SUBJECTS.append('Subject'+str(i+1))
-
-  print(f'Subjects {SUBJECTS} used for Training. A total of {len(os.listdir(BASE_DIR))-TOTAL_SUBJECT_NUM} reserved for validation.')
-
-  #SUBJECTS = SUBJECTS[0:10]
-  
-  SPO2HR, SPO2HR_attributes_dict = SortSPO2HR(BASE_DIR, SUBJECTS)
-  AccTempEDA, AccTempEDA_attributes_dict = SortAccTempEDA(BASE_DIR, SUBJECTS)
-  sanity_check_1(SPO2HR, AccTempEDA, BASE_DIR, SUBJECTS)
-
-  SPO2HR_target_size, AccTempEDA_target_size, SPO2HR_parameters, AccTempEDA_parameters, common_parameters, Parameters, relax_indices, phy_emo_cog_indices, attributes = necessary_variables('takes_nothing hahaha :)')
-
-  resize_to_uniform_lengths(TOTAL_SUBJECT_NUM, common_parameters, Parameters, SPO2HR_target_size, SPO2HR, AccTempEDA_target_size, AccTempEDA )
-  
-  AccTempEDA = sanity_check_2_and_MeanOFAccTempEDA(TOTAL_SUBJECT_NUM, common_parameters, Parameters, SPO2HR_target_size, SPO2HR, AccTempEDA_target_size, AccTempEDA, relax_indices, phy_emo_cog_indices)
-
-  INPUT_SHAPE = (7, 299, 300)
-
-  #TRAIN_DATA_PATH = sys.argv[1] 
-  NUMBER_CLASSES = 4
-
-  DATA_DICT = get_data_dict(TOTAL_SUBJECT_NUM, common_parameters, Parameters, SPO2HR, AccTempEDA)
-  NUMERICAL_LABELS_DICT = {j:i for i,j in enumerate(common_parameters)}
-  NUMBERS_TO_LABELS_DICT = {i:j for i,j in enumerate(common_parameters)}
-  ALL_COEFFICIENTS = get_coefficients(DATA_DICT)
-  WL_ModelLabels = WL_Model_Labels(NUMBER_CLASSES, DATA_DICT)
-
-  #1"""
-
-  
-  """2
-  NUMBER_CLASSES = 4
-
-  path_2_variables = '/content/gdrive/MyDrive/PhysioProject1/train_vars.py'
-  BIG_DATA_DICT, NUMBERS_TO_LABELS_DICT, BIG_ALL_COEFFICIENTS, BIG_WL_Model_Labels, ATTRIBUTES = get_variables(path_2_variables)
-  
-  TRAIN_COEFFICIENTS = train_stack(BIG_ALL_COEFFICIENTS, PERCENT_OF_TRAIN )
-  WL_TRAIN_LABELS = train_stack(BIG_WL_Model_Labels, PERCENT_OF_TRAIN)
-
-  PREDICT_COEFFICIENTS = predict_stack(BIG_ALL_COEFFICIENTS, PERCENT_OF_TRAIN)
-  WL_PREDICT_LABELS = predict_stack(BIG_WL_Model_Labels, PERCENT_OF_TRAIN)
-
-
-  BATCH_SIZE =8
-  TOTAL_DATA = TRAIN_COEFFICIENTS.shape[0]
-  assert(BATCH_SIZE < 0.5*TOTAL_DATA)
-  
-  TRAIN_STEPS = int(TOTAL_DATA / BATCH_SIZE)
-  EPOCHS = 30
-
-  #LOSS = 'categorical_crossentropy'
-  LOSS = tf.keras.losses.Huber()
-
-  OPTIMIZER = tf.keras.optimizers.SGD(learning_rate = 0.001, momentum = 0.0)
-  #OPTIMIZER = tf.keras.optimizers.Adam(learning_rate = 0.001) #(1e-05 == 0.00001)
-  #OPTIMIZER = tf.keras.optimizers.RMSprop(learning_rate = 0.001)#, clipvalue = 0.01)
-
- 2""" 
   #"""3
-  BASE_DIR = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/HealthySubjectsBiosignalsDataSet/'
-  PATH_TO_SAVED_VARIABLES = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/saved_vars.py'
+  BASE_DIR = './HealthySubjectsBiosignalsDataSet'
+  PATH_TO_SAVED_VARIABLES = './saved_vars.py'
 
   WHOLE_DICT, CATEGORIES,LABELS_TO_NUMBERS_DICT, NUMBERS_TO_LABELS_DICT = get_variables(PATH_TO_SAVED_VARIABLES)
   #SAVED_CWT_DICT = {i:j/255. for i,j in enumerate(SAVED_CWT_DICT['features'])}
@@ -101,13 +34,14 @@ class G:
   WINDOW_SAMPLING_DICT = {i:j for i,j in enumerate(window_sampling(WHOLE_DICT, window_size = WINDOW, overlap = OVERLAP))}
   SAMPLES_PER_SAMPLE = int(len(WINDOW_SAMPLING_DICT.keys())/len(WHOLE_DICT.keys()))
 
+
+
   TRAIN_FEATURES = train_stack(WINDOW_SAMPLING_DICT, PERCENT_OF_TRAIN, sensitivity = SAMPLES_PER_SAMPLE, features = True)
   TRAIN_LABELS = train_stack(WINDOW_SAMPLING_DICT, PERCENT_OF_TRAIN, sensitivity = SAMPLES_PER_SAMPLE, features = False)
-
-  #print(TRAIN_LABELS[719:840])
-
   #PREDICT_FEATURES = predict_stack(WINDOW_SAMPLING_DICT, PERCENT_OF_TRAIN, SAMPLES_PER_SAMPLE, features = True, subject_number = 20)
   #PREDICT_LABELS = predict_stack(WINDOW_SAMPLING_DICT,PERCENT_OF_TRAIN,  SAMPLES_PER_SAMPLE, features = False, subject_number = 20)
+
+
 
   #MODEL_INPUT_SHAPE = (TRAIN_FEATURES[0].shape[0], WINDOW-1, WINDOW) # to be compatible with the images generated by the wavelet transform
   MODEL_INPUT_SHAPE = (3, WINDOW-1, WINDOW) # to be compatible with the images generated by the wavelet transform
@@ -129,8 +63,8 @@ class G:
   #LOSS = tf.keras.losses.Huber() 
   LOSS = tf.keras.losses.CategoricalCrossentropy()
 
+
   lr1 = 0.001 
-  
   lr2 = 0.01 #0.001 working pretty well with RMS prop
   OPTIMIZER = tf.keras.optimizers.SGD(learning_rate=0.0001, momentum = 0.9)
   #OPTIMIZER = tf.keras.optimizers.Adam(lr1) #0.0001 really good
@@ -145,7 +79,7 @@ class G:
 #"""4
 
 if __name__ == "__main__":
-  #os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+  
   WL_model = wl_model(G)
 
   # Set the training parameters
@@ -202,7 +136,6 @@ if __name__ == "__main__":
 
   # WL_data = np.vstack((samp1[0], samp2[0], samp3[0], samp4[0]))
   # WL_data_labels = np.vstack((samp1[1], samp2[1], samp3[1], samp4[1]))
-
   # WL_DICT = {'features': WL_data, 'Labels': WL_data_labels}
  
 
@@ -227,6 +160,9 @@ if __name__ == "__main__":
   #   axs[j].matshow(samp1[0][0][j,:,:])
   # plt.show()
 
+
+
+
 #4"""
 
   history = WL_model.fit(train_data, #batch_size = G.BATCH_SIZE,
@@ -242,9 +178,7 @@ if __name__ == "__main__":
   )
                  
 
-#   manual_predict(WL_model, G.ALL_COEFFICIENTS)
 
-  # plot_loss_accuracy(history)
 
 #"""5
   import pandas as pd
