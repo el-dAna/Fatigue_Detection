@@ -22,3 +22,6 @@ The architecture of each model located in RNN_model.py and WL_model.py respectiv
 These models access common functions from the common_functions.py file.
 The WL_fucntions contain functions specific to the Wavelet Transform CNN model.
 
+The models are each not in a satisfactory state.
+The RNN model has high accuracy but poor performance on the confusion matrix
+The wL model has low accuracy.
