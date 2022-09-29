@@ -20,6 +20,7 @@ class G:
   BASE_DIR = './HealthySubjectsBiosignalsDataSet'
   PATH_TO_SAVED_VARIABLES = './saved_vars.py'
 
+  # caliing saved variables
   WHOLE_DICT, CATEGORIES,LABELS_TO_NUMBERS_DICT, NUMBERS_TO_LABELS_DICT = get_variables(PATH_TO_SAVED_VARIABLES)
   #SAVED_CWT_DICT = {i:j/255. for i,j in enumerate(SAVED_CWT_DICT['features'])}
   PERCENT_OF_TRAIN = 1
@@ -31,11 +32,11 @@ class G:
   OVERLAP = 0.6 
   assert(OVERLAP == 0.6), 'the saved CWT is compatibele with overlap of 60%'
 
+  # window sampling entire dataset
   WINDOW_SAMPLING_DICT = {i:j for i,j in enumerate(window_sampling(WHOLE_DICT, window_size = WINDOW, overlap = OVERLAP))}
   SAMPLES_PER_SAMPLE = int(len(WINDOW_SAMPLING_DICT.keys())/len(WHOLE_DICT.keys()))
 
-
-
+  # getting the train features and labels
   TRAIN_FEATURES = train_stack(WINDOW_SAMPLING_DICT, PERCENT_OF_TRAIN, sensitivity = SAMPLES_PER_SAMPLE, features = True)
   TRAIN_LABELS = train_stack(WINDOW_SAMPLING_DICT, PERCENT_OF_TRAIN, sensitivity = SAMPLES_PER_SAMPLE, features = False)
   #PREDICT_FEATURES = predict_stack(WINDOW_SAMPLING_DICT, PERCENT_OF_TRAIN, SAMPLES_PER_SAMPLE, features = True, subject_number = 20)
@@ -80,6 +81,7 @@ class G:
 
 if __name__ == "__main__":
   
+  # calling the model
   WL_model = wl_model(G)
 
   # Set the training parameters
@@ -91,7 +93,7 @@ if __name__ == "__main__":
 
 
 
-
+  # calling datagenerator to get batches for train and validation. 
   train_data = WaveletDatagenerator(G.TOTAL_TRAIN_DATA, 
                                   G.TRAIN_FEATURES,
                                   G.LABELS_TO_NUMBERS_DICT,
@@ -102,7 +104,8 @@ if __name__ == "__main__":
                                   augment_data = False,
                                   #steps_per_epoch = G.TRAIN_STEPS,
                                   )
-                                
+  
+  # this is same as the train_data above. Only used for debugging                             
   train_data2 = WaveletDatagenerator(G.TOTAL_TRAIN_DATA, 
                                   G.TRAIN_FEATURES,
                                   G.LABELS_TO_NUMBERS_DICT,

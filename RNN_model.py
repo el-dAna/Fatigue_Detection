@@ -14,6 +14,17 @@ from tensorflow.keras import layers
 # convert each recording into an a 3d image
 
 def model(project_dataclass, dp1, dp2, dp3, dp4):
+  """
+  This function defines the model to be used for the raw sequence data
+
+  INPUTS:
+  project_dataclass: dataclass -> contains global variables to be used throughout the project
+  dp1, dp2, dp3, dp4: ints -> tunable learningr lates for various layers in the model
+
+  RETURNS:
+  model1: keras model -> this model is compiled within this fucntion!!!!!!!!11
+ 
+  """
   #dp1 = dropout rate 1
   input_shape = project_dataclass.MODEL_INPUT_SHAPE
   input_layer = tf.keras.layers.Input(input_shape)

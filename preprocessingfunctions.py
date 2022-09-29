@@ -240,6 +240,16 @@ def SortAccTempEDA(base_dir, Subjects):
 def plot_varying_recording_time(SPO2HR_attributes_dict, AccTempEDA_attributes_dict ):
   """
   Plots the graph of the lenghts of each category for each subject
+
+  SPO2HR: A dictionary of the categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+        The value of each key is a dictionary with Spo2 and HeartRate as keys.
+        The values of each key is a list containing the measured voltages from a subject
+
+  AccTempEDA: a dictionary with the categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+              The value of each first key is a dictionary with attributes(AccZ, AccY, AccX, Temp, EDA) as keys
+              The value of each sencond key is a list.
+              The list contains the extracted values of attributes for each subject
+              AccTe
   """
   r = SPO2HR_attributes_dict['Relax']
   p = SPO2HR_attributes_dict['PhysicalStress']
@@ -435,6 +445,34 @@ def resize_to_uniform_lengths(total_subject_num, categories, attributes_dict, SP
   """
   This function resizes the varying recorded total times for the various categories to the targetted recording time.
   For example, total relax recording time for Subject1 = 1203, but the targetted = 1200. So this function removes the excesses or appends the last recorded values
+
+  INPUTS:
+  total_subject_num: (int) the total suject number 
+  categories: a list -> contains the category names
+  attributes_dict: a dict -> contains the attributes[Spo2, HeartRate, Acc(X-Z), Temp, EDA] of the dataset  
+  SPO2HR_target_size: a dict -> contains the theoritical lengths(number of recorded values) that each category should be in the SPO2HR.csv folder. 1Hz 
+  SPO2HR: A dictionary of the categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+        The value of each key is a dictionary with Spo2 and HeartRate as keys.
+        The values of each key is a list containing the measured voltages from a subject
+
+  AccTempEDA_target_size: a dict -> contains the theorical lengths(number of recorded values) that each category should be in the AccTempEDA.csv folder. 8Hz
+  AccTempEDA: a dictionary with the categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+              The value of each first key is a dictionary with attributes(AccZ, AccY, AccX, Temp, EDA) as keys
+              The value of each sencond key is a list.
+              The list contains the extracted values of attributes for each subject
+              AccTempEDA['Relax']['AccZ'][0] contains the extracted relax values of AccZ column of subject 1
+  
+  RETURNS:
+  SPO2HR: A dictionary of the RESIZED TO UNIFORM LENGTH categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+        The value of each key is a dictionary with Spo2 and HeartRate as keys.
+        The values of each key is a list containing the measured voltages from a subject
+
+  AccTempEDA: a dictionary with the RESIZED TO UNIFORM LENGHT categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+              The value of each first key is a dictionary with attributes(AccZ, AccY, AccX, Temp, EDA) as keys
+              The value of each sencond key is a list.
+              The list contains the extracted values of attributes for each subject
+              AccTempEDA['Relax']['AccZ'][0] contains the extracted relax values of AccZ column of subject 1
+  
   """
   SPO2HR_temp = copy.deepcopy(SPO2HR)
   AccTempEDA_temp = copy.deepcopy(AccTempEDA)
@@ -491,6 +529,38 @@ def resize_to_uniform_lengths(total_subject_num, categories, attributes_dict, SP
 
 
 def sanity_check_2_and_DownSamplingAccTempEDA(total_subject_num, categories, attributes_dict, SPO2HR_target_size, SPO2HR, AccTempEDA_target_size, AccTempEDA, relax_indices, phy_emo_cog_indices ):
+  """
+  This function checks the accuracy of the preprocessed data so far by comparing the preprocessed values with the originals.
+  In order not to define a second function, the 8Hz Acc(X-Z), Temp and EDA lenghts were downsampled to match the 1Hz sampling of Spo2 and HeartRate
+
+  INPUTS:
+  total_subject_num: (int) the total suject number 
+  categories: a list -> contains the category names
+  attributes_dict: a dict -> contains the attributes[Spo2, HeartRate, Acc(X-Z), Temp, EDA] of the dataset  
+  SPO2HR_target_size: a dict -> contains the theoritical lengths(number of recorded values) that each category should be in the SPO2HR.csv folder. 1Hz 
+  SPO2HR: A dictionary of the categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+        The value of each key is a dictionary with Spo2 and HeartRate as keys.
+        The values of each key is a list containing the measured voltages from a subject
+
+  AccTempEDA_target_size: a dict -> contains the theorical lengths(number of recorded values) that each category should be in the AccTempEDA.csv folder. 8Hz
+  AccTempEDA: a dictionary with the categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+              The value of each first key is a dictionary with attributes(AccZ, AccY, AccX, Temp, EDA) as keys
+              The value of each sencond key is a list.
+              The list contains the extracted values of attributes for each subject
+              AccTempEDA['Relax']['AccZ'][0] contains the extracted relax values of AccZ column of subject 1 
+  relax_indices: a dict -> contains the indices of values of relax. This allows easy sampling by direct referencing.
+  phy_emo_cog_indices: a dict -> contains the indices of values of PhysicalStress, EmotionalStress and Cognitive Stress for easy sampling by referencing
+
+
+  RETURNS:
+  AccTempEDA: a dictionary with the DOWNSAMPLED categories(Relax, PhysicalStress, CognitiveStress, EmotionalStress) as keys
+              The value of each first key is a dictionary with attributes(AccZ, AccY, AccX, Temp, EDA) as keys
+              The value of each sencond key is a list.
+              The list contains the extracted values of attributes for each subject
+              AccTempEDA['Relax']['AccZ'][0] contains the extracted relax values of AccZ column of subject 1
+  
+
+  """
   for Class in categories: # Relax', 'CognitiveStress', 'PhysicalStress', 'EmotionalStress'
     for attributes_dict_key in attributes_dict.keys(): # SPO2HR_parameters, AccTempEDA_parameters
       target_file = attributes_dict_key
@@ -632,6 +702,19 @@ def get_data_dict(total_subject_num, categories, attributes_dict, SPO2HR, AccTem
 
 
 def get_variables(path_to_saved_vars):
+  """
+  This function calls the saved variables from a file
+  INPUTS:
+  path_to_saved_vars: a string -> the relative/absolute path to the file of saved variables
+
+  RETURNS:
+  ALL_DATA_DICT: a dict -> contains the data of the entire preprocessing steps. Integer keys denoting nth feature. Values are 7x300 arrays. 7 attributes, 300 samples for each.
+                          since each subject had all the categories(Relax, PhysicalStress, EmotionalStress and Cognitive), value for key 1 corresponds to the relax category for subject 1.
+
+  categories: a list -> contains category names
+  LABELS_TO_NUMBERS_DICT: a dict -> contains categories as keys and integer labels as values
+  NUMBERS_TO_LABELS_DICT: a dict -> contains integers as keys and category names as values
+  """
   with open(path_to_saved_vars, 'rb') as load_site:
     ALL_DATA_DICT = pickle.load(load_site) # dictionary of 7x300 features corresponding to a label
     categories = pickle.load(load_site) # Relax, PhysicalStress, EmotionalStress, CognitiveStress

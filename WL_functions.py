@@ -28,7 +28,14 @@ def get_coefficients(DATADICT, wavelet = 'morl'):
 
 
 class WaveletDatagenerator(tf.keras.utils.Sequence):
-#class PhysioDatagenerator(tf.keras.utils.Sequence):
+  """
+  Datagenerator for the CNN model. This main difference from the physiodatagen is that the sequence windowed features are transformed to images using continouos wavelet transform filter
+  check datageneration method for the application
+
+  RETURNS
+  X: array -> batched array of CWT features
+  Y: array -> corresponding batched one-hot-encoded labels
+  """
   number_of_generated_samples = 0
   def __init__(self, total_subject_num,
                     data_dict,
@@ -91,14 +98,6 @@ class WaveletDatagenerator(tf.keras.utils.Sequence):
     batch_to_load = self.indexes[index*self.batch_size: (index+1)*self.batch_size]
     #print(f'Batch to load = {batch_to_load}')    
     X, y = self.__data_generation(batch_to_load)
-    
-    # wait = True
-    # while wait:
-    #   for i in y:
-    #     print(self.numbers_to_labels_dict[np.where(i==1)[0][0]])
-    #   wait = False
-    #print(f'{(y[0])}')
-    #if wait == False:
 
     return X, y
 
@@ -130,19 +129,9 @@ class WaveletDatagenerator(tf.keras.utils.Sequence):
     y = np.empty((self.batch_size), dtype=int)
     WaveletDatagenerator.number_of_generated_samples += 1
 
-    
-    #print(self.data_dict.keys())
-
-    # if self.augment_data:
-    #   print('Augmenting data...')
-    # else:
-    #   print('No Data Augmentation')
 
     for i,j in enumerate(batch_indices):
-      # print(PhysioDatagenerator.number_of_generated_samples)
-      # print(self.steps_per_epoch)
       if self.augment_data and (WaveletDatagenerator.number_of_generated_samples % 4) == 0:
-        #print(f'sample_number = {PhysioDatagenerator.number_of_generated_samples}')
         np.random.seed(self.seed)
         np.random.shuffle(self.data_dict[j])
         scales = range(1,self.data_dict[j].shape[1])
@@ -162,6 +151,7 @@ class WaveletDatagenerator(tf.keras.utils.Sequence):
         #print(f'temp shape: {temp.shape}')
         scales = range(1,temp.shape[0])
         coefs_temp = []
+
         #for k in range(temp.shape[0]):
         for k in range(3):
           coefficients, frequencies = pywt.cwt(temp[:, k], scales, 'morl')
@@ -190,7 +180,8 @@ class WaveletDatagenerator(tf.keras.utils.Sequence):
     last 20 cognitive
     We know this from the cration of the dictionary in get_data_dict() function where we stacked them in a specific order
     """
-    return X, keras.utils.np_utils.to_categorical(y, num_classes=self.num_classes)
+    Y = keras.utils.np_utils.to_categorical(y, num_classes=self.num_classes)
+    return X, Y
   
 
 
@@ -234,20 +225,6 @@ def WL_Model_Labels(num_classes, DATADICT ):
       label_temp1[i] = 1
       label_temp2.append(label_temp1)
   return np.array(label_temp2)
-
-
-
-def get_variables(path_to_train_vars):
-  #train_var = '/content/gdrive/My Drive/PhysioProject1/train_vars.py'
-  with open(path_to_train_vars, 'rb') as File:
-    D_DICT = pickle.load(File) # dictionary of 7x300 features corresponding to a label
-    N2L = pickle.load(File) # Relax, PhysicalStress, EmotionalStress, CognitiveStress
-    all_coeffs = pickle.load(File)
-    wl_model_labels = pickle.load(File) # [1 0 0 0], [1, 0 0 0] ---
-    attributes = pickle.load(File) # spo2, heartrate, Accx, ---
-    WL_DICT = pickle.load(File) # [480, 7, 99, 100] array of 50% overlapp WT sampled features 
-
-  return D_DICT, N2L, all_coeffs, wl_model_labels, attributes, WL_DICT
 
 
 

@@ -6,15 +6,28 @@ from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras import Model
 
 def wl_model(project_dataclass):
-  #tf.keras.backend.image_data_format() # this outputs the current system data format
+
+  """
+  This function creates the transfer learning model.
+
+  INPUTS:
+  project_dataclass: dataclass -> contains global variables to be used throughout the project
+
+  RETURNS:
+  WL_model: keras model -> model for classification
+  """
+  
+  # setting the image_data_format to suit the dataset
   tf.keras.backend.set_image_data_format('channels_first') # changes image format to accomodate 7 channelled images with channels first
   #tf.keras.backend.image_data_format() # this output the updated system data format
 
+  # setting parameters for the inception model
   copied_model = InceptionV3(input_shape = project_dataclass.MODEL_INPUT_SHAPE, 
                             include_top = False, 
                             weights = 'imagenet',
                             classes = 4 )
 
+  # loading the saved weights
   local_weights_file = '/content/gdrive/MyDrive/PhysioProject1/InceptionV3_weights.h5'
   #copied_model.load_weights(local_weights_file)
 

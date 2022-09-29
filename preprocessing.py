@@ -5,11 +5,15 @@ from preprocessingfunctions import SortSPO2HR, SortAccTempEDA, sanity_check_1, n
 
 if __name__ == "__main__":
 
+  # determines whether to delete previously save file for important variables
   overide_previously_saved_file= sys.argv[1]
 
+  # directory of dataset
   BASE_DIR = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/HealthySubjectsBiosignalsDataSet/'
 
+  # percent of data to be used for training
   PERCENT_OF_TRAIN = 1
+
 
   TRAIN_PERCENT = int(PERCENT_OF_TRAIN*len(os.listdir(BASE_DIR)))
   TOTAL_SUBJECT_NUM = len(os.listdir(BASE_DIR)[0:TRAIN_PERCENT])
@@ -20,13 +24,17 @@ if __name__ == "__main__":
 
   print(f'Subjects {SUBJECTS} used for Training. A total of {len(os.listdir(BASE_DIR))-TOTAL_SUBJECT_NUM} reserved for validation.')
 
+  # calling SortSPO2HR and SortAccTempEDA functions from preprocessing functions
   SPO2HR, SPO2HR_attributes_dict = SortSPO2HR(BASE_DIR, SUBJECTS)
   AccTempEDA, AccTempEDA_attributes_dict = SortAccTempEDA(BASE_DIR, SUBJECTS)
 
+  # plots graphs for the varying lenghts of recorded valeus
   #plot_varying_recording_time(SPO2HR_attributes_dict, AccTempEDA_attributes_dict)
 
+  # Fisrt sanity check to ensure accurate data representayion
   #sanity_check_1(BASE_DIR,SUBJECTS, SPO2HR, AccTempEDA, attribute = 'Temp', Spo2HR = False)
 
+  # gets necessary variables
   SPO2HR_target_size, AccTempEDA_target_size, SPO2HR_attributes, AccTempEDA_attributes, categories, attributes_dict, relax_indices, phy_emo_cog_indices, all_attributes = necessary_variables('takes_nothing__HAHAHA')
 
   SPO2HR_resized, AccTempEDA_resized = resize_to_uniform_lengths(TOTAL_SUBJECT_NUM, categories, attributes_dict, SPO2HR_target_size, SPO2HR, AccTempEDA_target_size, AccTempEDA)

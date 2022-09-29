@@ -19,106 +19,156 @@ def adjust_sensitivity(Dict, sensitivity):
 
 
 
+def window_sampling(samples_dict, window_size = 100, overlap = 0.6):
+  """
+  This function window samples the each feature.
+
+  INPUT:
+  samples_dict: dict -> contains the features to be sampled. Each feature is a 7x300 array
+  window_size: int -> specifies the windwo size, default is 100 values, this three 7x100 arrays from each 7x300 feature
+  overlap: float -> specifies the degree of overlap of windows. 0-no overlap.
+
+  RETURNS:
+  temp_samples: list -> a list of all the generated windows from each feature from the sample_dict
+  """
+
+  array_width = samples_dict[0].shape[1] #stores the allowable range of indices
+  percent_overlap = 1 - overlap #this is used instead to give generate the expected overlap. Using just overlap generates (1-overlap) overlap
+  stride = int(percent_overlap*window_size)
+  assert(stride > 0 and stride != 1), "Stride too small. Reduce the value of overlap."
+  max_samples = int(((array_width - window_size)/stride) + 1)
+  assert(window_size<array_width), "Window size should be less than total array width"
+  assert(overlap != 1), "Percentage of overlap should be less than 100% or 1"
+
+  temp_samples = [] #to keep generated samples
+
+  temp_dict = {} #keeps generated indices for debugging
+  #keeps a zipped list of generated indices for dubugging----somehow unnecessary
+  #zipped_indices = list( zip((int(percent_overlap*window_size*i) for i in range(max_samples)), (int(window_size+percent_overlap*window_size*i) for i in range(max_samples))))
+  for j in range(len(samples_dict.keys())):
+    for i in range(max_samples):
+      start = int(percent_overlap*window_size*i)
+      stop = int(window_size+(start))
+      #temp_dict[i] = [start, stop]
+
+      assert(stop <= array_width),f'Allowabe max_index = {array_width}---Last generated index = {stop}.'
+      temp = samples_dict[j][:, start : stop]
+      temp_samples.append(temp)
+  print(f'Original subject number = {len(samples_dict.keys())} \nSamples per sample = {max_samples} \nTotal generated = {len(temp_samples)}')
+  return temp_samples #,temp_dict#, zipped_indices
+
+
+
+
+
+
 def train_stack(big_dict, train_ratio, sensitivity = 1, features = True ):
+  """
+  This function prepares the traing data from the entire preprocessed features
+
+  INPUTS:
+  big_dict: a dict -> contains the entire preprocessed dataset
+  train_ratio: float [0-1) -> specifies the percent of train
+  sensitivity: int -> specifies the number of samples generated if features are window-sampled. A value of 1 means no window sampling, thus 1 generated feature for every 1 feature
+  features: bool -> if True, function returns features, if false, functio returns labels
+
+  RETURNS:
+  stack: numpy array -> a stack of either train features or corresponding labels(depending on the value of features in the arguments)
+
+  """
   Relax_index, PhysicalStress_index, EmotionalStress_index, CognitiveStress_index = 80, 100, 120, 140
   relax, physical, emotional, cognitive = [], [], [], []
   if features:
     if sensitivity == 1:
-      #stop = int(subject_number*train_ratio)
       relax_indices = [i for i in range(0, Relax_index)]
       for i in relax_indices:
         relax.append(big_dict[i])
 
-      #physical = big_dict[20+stop :40]
       physical_indices = [i for i in range(PhysicalStress_index - 20, PhysicalStress_index)]
       for i in physical_indices:
         physical.append(big_dict[i])
 
-      #emotional = big_dict[40+stop :60]
       emotional_indices = [i for i in range(EmotionalStress_index-20, EmotionalStress_index)]
       for i in emotional_indices:
         emotional.append(big_dict[i])
 
-      #cognitive = big_dict[60+stop :80]
       cognitive_indices = [i for i in range(CognitiveStress_index-20, CognitiveStress_index)]
       for i in cognitive_indices:
         cognitive.append(big_dict[i])
 
     else:
-      #start = 140*sensitivity
-      #stop = int(subject_number*train_ratio)*sensitivity
-      #relax_indices = [i for i in range(0, stop)]
       for i in range(0, Relax_index*sensitivity):
         relax.append(big_dict[i])
 
-      #physical = big_dict[20+stop :40]
       physical_indices = [i for i in range(sensitivity*(PhysicalStress_index-20), PhysicalStress_index*sensitivity)]
       for i in physical_indices:
         physical.append(big_dict[i])
 
-      #emotional = big_dict[40+stop :60]
       emotional_indices = [i for i in range(sensitivity*(EmotionalStress_index-20), EmotionalStress_index*sensitivity)]
       for i in emotional_indices:
         emotional.append(big_dict[i])
 
-      #cognitive = big_dict[60+stop :80]
       cognitive_indices = [i for i in range(sensitivity*(CognitiveStress_index-20), CognitiveStress_index*sensitivity)]
       for i in cognitive_indices:
         cognitive.append(big_dict[i])
 
   elif features == False:
     if sensitivity == 1:
-      #stop = int(subject_number*train_ratio)
 
       relax_indices = [i for i in range(0, Relax_index)]
       for i in relax_indices:
         relax.append(np.eye(4)[0])
 
-      #physical = big_dict[20+stop :40]
       physical_indices = [i for i in range(PhysicalStress_index - 20, PhysicalStress_index)]
       for i in physical_indices:
         physical.append(np.eye(4)[1])
 
-      #emotional = big_dict[40+stop :60]
       emotional_indices = [i for i in range(EmotionalStress_index - 20, EmotionalStress_index)]
       for i in emotional_indices:
         emotional.append(np.eye(4)[2])
 
-      #cognitive = big_dict[60+stop :80]
       cognitive_indices = [i for i in range(CognitiveStress_index - 20, CognitiveStress_index)]
       for i in cognitive_indices:
         cognitive.append(np.eye(4)[3])
 
     else:
-      #start = subject_number*sensitivity
-      #stop = int(subject_number*train_ratio)*sensitivity
       relax_indices = [i for i in range(0, Relax_index*sensitivity)]
       for i in relax_indices:
         relax.append(np.eye(4)[0])
 
-      #physical = big_dict[20+stop :40]
       physical_indices = [i for i in range(sensitivity*(PhysicalStress_index-20), PhysicalStress_index*sensitivity)]
       for i in physical_indices:
         physical.append(np.eye(4)[1])
 
-      #emotional = big_dict[40+stop :60]
       emotional_indices = [i for i in range(sensitivity*(EmotionalStress_index-20), EmotionalStress_index*sensitivity)]
       for i in emotional_indices:
         emotional.append(np.eye(4)[2])
 
-      #cognitive = big_dict[60+stop :80]
       cognitive_indices = [i for i in range(sensitivity*(CognitiveStress_index-20), CognitiveStress_index*sensitivity)]
       for i in cognitive_indices:
         cognitive.append(np.eye(4)[3])
 
-
-  return np.vstack((np.array(relax), np.array(physical), np.array(emotional), np.array(cognitive)))
-
-
+  stack = np.vstack((np.array(relax), np.array(physical), np.array(emotional), np.array(cognitive)))
+  return stack
 
 
-# PREDICTION
+
+
+# PREDICTION CURRENTLY DEPRICATED. WILL MOST PROBABLY BE DELETED.
 def predict_stack(big_dict, train_ratio, sensitivity = 1, features = True, subject_number = 20):
+  """
+  This function prepares the predict data from the entire preprocessed features
+
+  INPUTS:
+  big_dict: a dict -> contains the entire preprocessed dataset
+  train_ratio: float [0-1) -> specifies the percent of train. From this the ratio for prediction/validation can be deduced
+  sensitivity: int -> specifies the number of samples generated if features are window-sampled. A value of 1 means no window sampling, thus 1 generated feature for every 1 feature
+  features: bool -> if True, function returns features, if false, functio returns labels
+
+  RETURNS:
+  stack: numpy array -> a stack of either train features or corresponding labels(depending on the value of features in the arguments)
+
+  """
   relax, physical, emotional, cognitive = [], [], [], []
   
   if features:
@@ -207,62 +257,39 @@ def predict_stack(big_dict, train_ratio, sensitivity = 1, features = True, subje
       for i in range(block*3+stop, block*4):
         cognitive.append(np.eye(4)[3])     
 
+  stack = np.vstack((np.array(relax), np.array(physical), np.array(emotional), np.array(cognitive)))
+  return stack
 
-  return np.vstack((np.array(relax), np.array(physical), np.array(emotional), np.array(cognitive)))
-
-
-
-
-
-
-def window_sampling(samples_dict, window_size = 100, overlap = 0.6):
-
-  array_width = samples_dict[0].shape[1] #stores the allowable range of indices
-  percent_overlap = 1 - overlap #this is used instead to give generate the expected overlap. Using just overlap generates (1-overlap) overlap
-  stride = int(percent_overlap*window_size)
-  assert(stride > 0 and stride != 1), "Stride too small. Reduce the value of overlap."
-  max_samples = int(((array_width - window_size)/stride) + 1)
-  assert(window_size<array_width), "Window size should be less than total array width"
-  assert(overlap != 1), "Percentage of overlap should be less than 100% or 1"
-
-  temp_samples = [] #to keep generated samples
-
-  temp_dict = {} #keeps generated indices for debugging
-  #keeps a zipped list of generated indices for dubugging----somehow unnecessary
-  #zipped_indices = list( zip((int(percent_overlap*window_size*i) for i in range(max_samples)), (int(window_size+percent_overlap*window_size*i) for i in range(max_samples))))
-  for j in range(len(samples_dict.keys())):
-    for i in range(max_samples):
-      start = int(percent_overlap*window_size*i)
-      stop = int(window_size+(start))
-      #temp_dict[i] = [start, stop]
-
-      assert(stop <= array_width),f'Allowabe max_index = {array_width}---Last generated index = {stop}.'
-      temp = samples_dict[j][:, start : stop]
-      temp_samples.append(temp)
-  print(f'Original subject number = {len(samples_dict.keys())} \nSamples per sample = {max_samples} \nTotal generated = {len(temp_samples)}')
-  return temp_samples #,temp_dict#, zipped_indices
 
 
 
 # CALLBACK FUNCTIONS
 class stop_training(tf.keras.callbacks.Callback):
+  """
+  This function specifies when to stop training the model in order to avoid overfitting
+
+  """
   def on_epoch_end(self, epoch, logs={}):
     if (logs.get('accuracy') > 0.99) and (logs.get('val_accuracy') > 0.99):
       print("\nReached 94.0% accuracy and over 90% val accuracy -> so cancelling training!")
       self.model.stop_training = True
 
+# another callback function to schedule the learning rate. Used to tune the learning rate for optimisation
 schedule_learningRate = tf.keras.callbacks.LearningRateScheduler(lambda epoch: 1e-8 * 10**(epoch/20))
 
-
-graphdir="/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/RNN_graph"
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=graphdir)
 
 
 
 import matplotlib.pyplot as plt
 
 class PhysioDatagenerator(tf.keras.utils.Sequence):
-#class PhysioDatagenerator(tf.keras.utils.Sequence):
+  """
+  The data generator for the model.
+  
+  RETURNS:
+  X: array -> batched array of CWT features
+  Y: array -> corresponding batched one-hot-encoded labels
+  """
   number_of_generated_samples = 0
   def __init__(self, total_subject_num,
                     data_dict,
@@ -324,17 +351,8 @@ class PhysioDatagenerator(tf.keras.utils.Sequence):
 
   def __getitem__(self, index):
 
-    batch_to_load = self.indexes[index*self.batch_size: (index+1)*self.batch_size]
-    #print(f'Batch to load = {batch_to_load}')    
+    batch_to_load = self.indexes[index*self.batch_size: (index+1)*self.batch_size] 
     X, y = self.__data_generation(batch_to_load)
-    
-    # wait = True
-    # while wait:
-    #   for i in y:
-    #     print(self.numbers_to_labels_dict[np.where(i==1)[0][0]])
-    #   wait = False
-    #print(f'{(y[0])}')
-    #if wait == False:
 
     return X, y
 
@@ -364,19 +382,9 @@ class PhysioDatagenerator(tf.keras.utils.Sequence):
     y = np.empty((self.batch_size), dtype=int)
     PhysioDatagenerator.number_of_generated_samples += 1
 
-    
-    #print(self.data_dict.keys())
-
-    # if self.augment_data:
-    #   print('Augmenting data...')
-    # else:
-    #   print('No Data Augmentation')
 
     for i,j in enumerate(batch_indices):
-      # print(PhysioDatagenerator.number_of_generated_samples)
-      # print(self.steps_per_epoch)
       if self.augment_data and (PhysioDatagenerator.number_of_generated_samples % 4) == 0:
-        #print(f'sample_number = {PhysioDatagenerator.number_of_generated_samples}')
         np.random.seed(self.seed)
         np.random.shuffle(self.data_dict[j])
         X[i,] = self.data_dict[j]
@@ -409,15 +417,20 @@ class PhysioDatagenerator(tf.keras.utils.Sequence):
       last 20 cognitive
       We know this from the cration of the dictionary in get_data_dict() function where we stacked them in a specific order
       """
-    return X, keras.utils.np_utils.to_categorical(y, num_classes=self.num_classes)
+    Y = keras.utils.np_utils.to_categorical(y, num_classes=self.num_classes)
+    return X, Y
 
 
 
 
 
-
+# DEPRECATED FUNCTIONSSSSSSSSSSSSSS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def plot_learnRate_epoch(epoch_number, history):
+  """
+  This function plots and saves the learning reate for the trained model
 
+  INPUTS:  
+  """
   base = '/content/gdrive/MyDrive/PhysioProject1/python-classifier-2020/Plots'
   target = os.path.join(base, 'learningRate.png')
 
