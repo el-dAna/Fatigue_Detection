@@ -62,7 +62,7 @@ def window_sampling(samples_dict, window_size = 100, overlap = 0.6):
 
 
 
-def train_stack(big_dict, train_ratio, sensitivity = 1, features = True ):
+def train_stack(big_dict, train_ratio, TRAIN_RELAX_PROPORTION, RELAX_PROPORTION, OTHERS_PROPORTION, TRAIN_OTHERS_PROPORTION, sensitivity = False, features = True ):
   """
   This function prepares the traing data from the entire preprocessed features
 
@@ -97,24 +97,24 @@ def train_stack(big_dict, train_ratio, sensitivity = 1, features = True ):
         cognitive.append(big_dict[i])
 
     else:
-      for i in range(0, Relax_index*sensitivity):
+      for i in range(0, TRAIN_RELAX_PROPORTION):
         relax.append(big_dict[i])
 
-      physical_indices = [i for i in range(sensitivity*(PhysicalStress_index-20), PhysicalStress_index*sensitivity)]
+      physical_indices = [i for i in range(RELAX_PROPORTION, RELAX_PROPORTION + TRAIN_OTHERS_PROPORTION)]
       for i in physical_indices:
         physical.append(big_dict[i])
 
-      emotional_indices = [i for i in range(sensitivity*(EmotionalStress_index-20), EmotionalStress_index*sensitivity)]
+      emotional_indices = [i for i in range(RELAX_PROPORTION + OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION + TRAIN_OTHERS_PROPORTION)]
       for i in emotional_indices:
         emotional.append(big_dict[i])
 
-      cognitive_indices = [i for i in range(sensitivity*(CognitiveStress_index-20), CognitiveStress_index*sensitivity)]
+      cognitive_indices = [i for i in range(RELAX_PROPORTION + OTHERS_PROPORTION*2, RELAX_PROPORTION + OTHERS_PROPORTION*2 + TRAIN_OTHERS_PROPORTION)]
       for i in cognitive_indices:
         cognitive.append(big_dict[i])
 
   elif features == False:
     if sensitivity == 1:
-
+      
       relax_indices = [i for i in range(0, Relax_index)]
       for i in relax_indices:
         relax.append(np.eye(4)[0])
@@ -132,19 +132,20 @@ def train_stack(big_dict, train_ratio, sensitivity = 1, features = True ):
         cognitive.append(np.eye(4)[3])
 
     else:
-      relax_indices = [i for i in range(0, Relax_index*sensitivity)]
+      #print(TRAIN_RELAX_PROPORTION)
+      relax_indices = [i for i in range(0, TRAIN_RELAX_PROPORTION)]
       for i in relax_indices:
         relax.append(np.eye(4)[0])
 
-      physical_indices = [i for i in range(sensitivity*(PhysicalStress_index-20), PhysicalStress_index*sensitivity)]
+      physical_indices = [i for i in range(RELAX_PROPORTION, RELAX_PROPORTION + TRAIN_OTHERS_PROPORTION)]
       for i in physical_indices:
         physical.append(np.eye(4)[1])
 
-      emotional_indices = [i for i in range(sensitivity*(EmotionalStress_index-20), EmotionalStress_index*sensitivity)]
+      emotional_indices = [i for i in range(RELAX_PROPORTION + OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION + TRAIN_OTHERS_PROPORTION)]
       for i in emotional_indices:
         emotional.append(np.eye(4)[2])
 
-      cognitive_indices = [i for i in range(sensitivity*(CognitiveStress_index-20), CognitiveStress_index*sensitivity)]
+      cognitive_indices = [i for i in range(RELAX_PROPORTION + OTHERS_PROPORTION*2, RELAX_PROPORTION + OTHERS_PROPORTION*2 + TRAIN_OTHERS_PROPORTION)]
       for i in cognitive_indices:
         cognitive.append(np.eye(4)[3])
 
@@ -155,7 +156,7 @@ def train_stack(big_dict, train_ratio, sensitivity = 1, features = True ):
 
 
 # PREDICTION CURRENTLY DEPRICATED. WILL MOST PROBABLY BE DELETED.
-def predict_stack(big_dict, train_ratio, sensitivity = 1, features = True, subject_number = 20):
+def predict_stack(big_dict, train_ratio, TRAIN_RELAX_PROPORTION, RELAX_PROPORTION, OTHERS_PROPORTION, TRAIN_OTHERS_PROPORTION, sensitivity = 1, features = True):
   """
   This function prepares the predict data from the entire preprocessed features
 
@@ -173,88 +174,85 @@ def predict_stack(big_dict, train_ratio, sensitivity = 1, features = True, subje
   
   if features:
     if sensitivity == 1:
-      stop = int(subject_number*train_ratio)
-      #relax_indices = [i for i in range(stop, 20)]
-      for i in range(stop, subject_number):
-        relax.append(big_dict[i])
+      pass
+      # stop = int(subject_number*train_ratio)
+      # #relax_indices = [i for i in range(stop, 20)]
+      # for i in range(stop, subject_number):
+      #   relax.append(big_dict[i])
 
-      #physical = big_dict[20+stop :40]
-      #physical_indices = [i for i in range(20+stop, 40)]
-      for i in range(subject_number+stop, subject_number*2):
-        physical.append(big_dict[i])
+      # #physical = big_dict[20+stop :40]
+      # #physical_indices = [i for i in range(20+stop, 40)]
+      # for i in range(subject_number+stop, subject_number*2):
+      #   physical.append(big_dict[i])
 
-      #emotional = big_dict[40+stop :60]
-      #emotional_indices = [i for i in range(40+stop, 60)]
-      for i in range(subject_number*2+stop, subject_number*3):
-        emotional.append(big_dict[i])
+      # #emotional = big_dict[40+stop :60]
+      # #emotional_indices = [i for i in range(40+stop, 60)]
+      # for i in range(subject_number*2+stop, subject_number*3):
+      #   emotional.append(big_dict[i])
 
-      #cognitive = big_dict[60+stop :80]
-      #cognitive_indices = [i for i in range(60+stop, 80)]
-      for i in range(subject_number*3+stop, subject_number*4):
-        cognitive.append(big_dict[i])
+      # #cognitive = big_dict[60+stop :80]
+      # #cognitive_indices = [i for i in range(60+stop, 80)]
+      # for i in range(subject_number*3+stop, subject_number*4):
+      #   cognitive.append(big_dict[i])
 
 
     else:
-      stop = int(subject_number*train_ratio)*sensitivity
-      block = subject_number*sensitivity
+      # stop = int(subject_number*train_ratio)*sensitivity
+      # block = subject_number*sensitivity
 
       #relax_indices = [i for i in range(stop, block)]
-      for i in range(stop, block):
+      for i in range(TRAIN_RELAX_PROPORTION, RELAX_PROPORTION):
         relax.append(big_dict[i])
 
       #physical = big_dict[20+stop :40]
       #physical_indices = [i for i in range(block+stop, block*2)]
-      for i in range(block+stop, block*2):
+      for i in range(RELAX_PROPORTION + TRAIN_OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION):
         physical.append(big_dict[i])
 
       #emotional = big_dict[40+stop :60]
       #emotional_indices = [i for i in range(block*2+stop, block*3)]
-      for i in  range(block*2+stop, block*3):
+      for i in  range(RELAX_PROPORTION + OTHERS_PROPORTION + TRAIN_OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION*2 ):
         emotional.append(big_dict[i])
 
       #cognitive = big_dict[60+stop :80]
       #cognitive_indices = [i for i in range(block*3+stop, block*4)]
-      for i in range(block*3+stop, block*4):
+      for i in range(RELAX_PROPORTION + OTHERS_PROPORTION*2 + TRAIN_OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION*3):
         cognitive.append(big_dict[i])
 
 
   elif features == False:
     if sensitivity == 1:
-      stop = int(subject_number*train_ratio)
-      block = subject_number
-      for i in range(stop, block):
-        relax.append(np.eye(4)[0])
+      pass
+      # for i in range(stop, block):
+      #   relax.append(np.eye(4)[0])
 
-      for i in range(block+stop, block*2):
-        physical.append(np.eye(4)[1])
+      # for i in range(block+stop, block*2):
+      #   physical.append(np.eye(4)[1])
 
-      for i in range(block*2+stop, block*3):
-        emotional.append(np.eye(4)[2])
+      # for i in range(block*2+stop, block*3):
+      #   emotional.append(np.eye(4)[2])
 
-      for i in range(block*3+stop, block*4):
-        cognitive.append(np.eye(4)[3])
+      # for i in range(block*3+stop, block*4):
+      #   cognitive.append(np.eye(4)[3])
 
     else:
-      stop = int(subject_number*train_ratio)*sensitivity
-      block = subject_number*sensitivity
-
       #relax_indices = [i for i in range(stop, block)]
-      for i in range(stop, block):
+      for i in range(TRAIN_RELAX_PROPORTION, RELAX_PROPORTION):
         relax.append(np.eye(4)[0])
 
       #physical = big_dict[20+stop :40]
       #physical_indices = [i for i in range(block+stop, block*2)]
-      for i in range(block+stop, block*2):
+      for i in range(RELAX_PROPORTION + TRAIN_OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION):
         physical.append(np.eye(4)[1])
 
       #emotional = big_dict[40+stop :60]
       #emotional_indices = [i for i in range(block*2+stop, block*3)]
-      for i in range(block*2+stop, block*3):
+      for i in range(RELAX_PROPORTION + OTHERS_PROPORTION + TRAIN_OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION*2):
         emotional.append(np.eye(4)[2])
 
       #cognitive = big_dict[60+stop :80]
       #cognitive_indices = [i for i in range(block*3+stop, block*4)]
-      for i in range(block*3+stop, block*4):
+      for i in range(RELAX_PROPORTION + OTHERS_PROPORTION*2 + TRAIN_OTHERS_PROPORTION, RELAX_PROPORTION + OTHERS_PROPORTION*3):
         cognitive.append(np.eye(4)[3])     
 
   stack = np.vstack((np.array(relax), np.array(physical), np.array(emotional), np.array(cognitive)))
@@ -311,7 +309,7 @@ class PhysioDatagenerator(tf.keras.utils.Sequence):
     self.input_dimention = input_dimention
     self.batch_size = batch_size
     self.augment_data = augment_data
-    self.steps_per_epoch = steps_per_epoch
+    #self.steps_per_epoch = steps_per_epoch
 
     # if assertion thrown, batch_size = 10 is the default size. Check the Train file and pass the right size to the datagenerator
     #assert(self.batch_size < 0.5*self.total_subject_num)
@@ -395,15 +393,15 @@ class PhysioDatagenerator(tf.keras.utils.Sequence):
         #X[i,] = self.data_dict[j][:, self.zipped_indices[temp_sample][0]: self.zipped_indices[temp_sample][1] ] # original 7-channel data
         X[i,] = self.data_dict[j]
 
-      first_quartile = 0.25*self.total_subject_num # first quarter of data are 'Relax', indices [0-19], if total number of samples is say 80
+      first_quartile = 80*self.total_subject_num # first quarter of data are 'Relax', indices [0-19], if total number of samples is say 80
       second_quartile = 0.5*self.total_subject_num # 'second quarter' of data are 'PhysicalStress', indices [20-39]
       third_quartile = 0.75*self.total_subject_num # 'third quarter' of data are 'EmotionalStress', indices [40-59]
 
-      if j < first_quartile:
+      if j < 720:
         y[i] = self.labels_to_numbers_dict['Relax']
-      elif first_quartile <= j < second_quartile:
+      elif 720 <= j < 720+180:
         y[i] = self.labels_to_numbers_dict['PhysicalStress']
-      elif second_quartile <= j < third_quartile:
+      elif 720+180 <= j < 720+(180*2):
         y[i] = self.labels_to_numbers_dict['EmotionalStress']
       else:
         y[i] = self.labels_to_numbers_dict['CognitiveStress']

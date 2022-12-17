@@ -162,11 +162,11 @@ class WaveletDatagenerator(tf.keras.utils.Sequence):
       second_quartile = 0.5*self.total_subject_num # 'second quarter' of data are 'PhysicalStress', indices [20-39]
       third_quartile = 0.75*self.total_subject_num # 'third quarter' of data are 'EmotionalStress', indices [40-59]
 
-      if j < first_quartile:
+      if j < 720:
         y[i] = self.labels_to_numbers_dict['Relax']
-      elif first_quartile <= j < second_quartile:
+      elif 720 <= j < 720+180:
         y[i] = self.labels_to_numbers_dict['PhysicalStress']
-      elif second_quartile <= j < third_quartile:
+      elif 720+180 <= j < 720+(180*2):
         y[i] = self.labels_to_numbers_dict['EmotionalStress']
       else:
         y[i] = self.labels_to_numbers_dict['CognitiveStress']

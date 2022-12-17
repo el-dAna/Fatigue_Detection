@@ -31,24 +31,24 @@ def model(project_dataclass, dp1, dp2, dp3, dp4):
 
   layer_c1 = layers.Conv1D(filters = 32, kernel_size = (3), padding ='same', activation='relu', kernel_initializer = 'HeUniform', name='l1')(input_layer)
   layer_c1_b = layers.BatchNormalization(epsilon = 0.001)(layer_c1)
-  #layer_c1_m = layers.MaxPooling1D(padding = 'same')(layer_c1_b) #ADDED
+  layer_c1_m = layers.MaxPooling1D(padding = 'same')(layer_c1_b) #ADDED
   #layer_d4 = layers.Dropout(dp4)(layer_c1_b)
 
-  layer_c2 = layers.Conv1D(filters = 64, kernel_size = (3), padding = 'same', activation = 'relu', kernel_initializer = 'HeUniform', name = 'l2')(layer_c1_b)
+  layer_c2 = layers.Conv1D(filters = 64, kernel_size = (3), padding = 'same', activation = 'relu', kernel_initializer = 'HeUniform', name = 'l2')(layer_c1_m)
   layer_c2_b = layers.BatchNormalization(epsilon = 0.001)(layer_c2)
-  #layer_c2_m = layers.MaxPooling1D(padding = 'same' )(layer_c2_b)#ADDED
+  layer_c2_m = layers.MaxPooling1D(padding = 'same' )(layer_c2_b)#ADDED
   #layer_d3 = layers.Dropout(dp1)(layer_c2_b)
   #"""
 
-  layer_c3 = layers.Conv1D(filters = 128, kernel_size = (3), padding = 'same', activation = 'relu', kernel_initializer = 'HeUniform', name = 'l3')(layer_c2_b)
+  layer_c3 = layers.Conv1D(filters = 128, kernel_size = (3), padding = 'same', activation = 'relu', kernel_initializer = 'HeUniform', name = 'l3')(layer_c2_m)
   layer_c3_b = layers.BatchNormalization(epsilon = 0.001)(layer_c3)
-  #layer_c3_m = layers.MaxPooling1D(padding = 'same' )(layer_c3) #ADDED
+  layer_c3_m = layers.MaxPooling1D(padding = 'same' )(layer_c3_b) #ADDED
   #layer_d1 = layers.Dropout(dp2)(layer_c3_b)
   #"""
 
   #"""
   # second
-  layer_l1 = layers.LSTM(units = 32, return_sequences = True)(layer_c2_b)
+  layer_l1 = layers.LSTM(units = 32, return_sequences = True)(layer_c3_m)
   #layer_d2 = layers.Dropout(dp3)(layer_l1)
   #"""
   """
@@ -59,7 +59,7 @@ def model(project_dataclass, dp1, dp2, dp3, dp4):
   layer_d2 = layers.Dropout(dp3)(layer_l1_b1)
   """
 
-  layer_conc = layers.concatenate([layer_l1, layer_c3_b])
+  layer_conc = layers.concatenate([layer_l1, layer_c3_m])
 
   l1 = layers.Flatten()(layer_conc)
   l2 = layers.Dense(64, activation='softmax')(l1)
